@@ -24,16 +24,11 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sleepycat.je.Environment;
-import com.sleepycat.je.EnvironmentConfig;
-
 import edu.uci.ics.crawler4j.fetcher.PageFetcher;
-import edu.uci.ics.crawler4j.frontier.DocIDServer;
 import edu.uci.ics.crawler4j.frontier.Frontier;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
 import edu.uci.ics.crawler4j.url.URLCanonicalizer;
 import edu.uci.ics.crawler4j.url.WebURL;
-import edu.uci.ics.crawler4j.util.IO;
 
 /**
  * The controller that manages a crawling session. This class creates the
@@ -41,7 +36,7 @@ import edu.uci.ics.crawler4j.util.IO;
  * 
  * @author Yasser Ganjisaffar <lastname at gmail dot com>
  */
-public class CrawlController extends Configurable {
+public abstract class CrawlController extends Configurable {
 
 	protected static final Logger logger = LoggerFactory.getLogger(CrawlController.class);
 
@@ -71,7 +66,6 @@ public class CrawlController extends Configurable {
 	protected PageFetcher pageFetcher;
 	protected RobotstxtServer robotstxtServer;
 	protected Frontier frontier;
-	protected DocIDServer docIdServer;
 
 	protected final Object waitingLock = new Object();
 
@@ -86,27 +80,7 @@ public class CrawlController extends Configurable {
 				throw new Exception("Couldn't create this folder: " + folder.getAbsolutePath());
 			}
 		}
-
-		boolean resumable = config.isResumableCrawling();
-
-		EnvironmentConfig envConfig = new EnvironmentConfig();
-		envConfig.setAllowCreate(true);
-		envConfig.setTransactional(resumable);
-		envConfig.setLocking(resumable);
-
-		File envHome = new File(config.getCrawlStorageFolder() + "/frontier");
-		if (!envHome.exists()) {
-			if (!envHome.mkdir()) {
-				throw new Exception("Couldn't create this folder: " + envHome.getAbsolutePath());
-			}
-		}
-		if (!resumable) {
-			IO.deleteFolderContents(envHome);
-		}
-
-		Environment env = new Environment(envHome, envConfig);
-		docIdServer = new DocIDServer(env, config);
-		frontier = new Frontier(env, config, docIdServer);
+		frontier = frontierFactory();
 
 		this.pageFetcher = pageFetcher;
 		this.robotstxtServer = robotstxtServer;
@@ -206,14 +180,14 @@ public class CrawlController extends Configurable {
 									}
 									if (!someoneIsWorking) {
 										if (!shuttingDown) {
-											long queueLength = frontier.getQueueLength();
-											if (queueLength > 0) {
+											boolean finished = frontier.isFinished();
+											if (finished) {
 												continue;
 											}
 											logger.info("No thread is working and no more URLs are in queue waiting for another 10 seconds to make sure...");
 											sleep(10);
-											queueLength = frontier.getQueueLength();
-											if (queueLength > 0) {
+											finished = frontier.isFinished();
+											if (finished) {
 												continue;
 											}
 										}
@@ -233,7 +207,6 @@ public class CrawlController extends Configurable {
 										sleep(10);
 
 										frontier.close();
-										docIdServer.close();
 										pageFetcher.shutDown();
 
 										finished = true;
@@ -304,7 +277,7 @@ public class CrawlController extends Configurable {
 	 *            the URL of the seed
 	 */
 	public void addSeed(String pageUrl) {
-		addSeed(pageUrl, -1);
+		addSeed(pageUrl, null);
 	}
 
 	/**
@@ -326,25 +299,15 @@ public class CrawlController extends Configurable {
 	 *            the document id that you want to be assigned to this seed URL.
 	 * 
 	 */
-	public void addSeed(String pageUrl, int docId) {
+	public void addSeed(String pageUrl, String docId) {
 		String canonicalUrl = URLCanonicalizer.getCanonicalURL(pageUrl);
 		if (canonicalUrl == null) {
 			logger.error("Invalid seed URL: " + pageUrl);
 			return;
 		}
-		if (docId < 0) {
-			docId = docIdServer.getDocId(canonicalUrl);
-			if (docId > 0) {
-				// This URL is already seen.
-				return;
-			}
-			docId = docIdServer.getNewDocID(canonicalUrl);
-		} else {
-			try {
-				docIdServer.addUrlAndDocId(canonicalUrl, docId);
-			} catch (Exception e) {
-				logger.error("Could not add seed: " + e.getMessage());
-			}
+		if (docId == null && frontier.hasBeenDiscovered(pageUrl)) {
+			// This URL is already seen.
+			return;
 		}
 
 		WebURL webUrl = new WebURL();
@@ -380,11 +343,6 @@ public class CrawlController extends Configurable {
 			logger.error("Invalid Url: " + url);
 			return;
 		}
-		try {
-			docIdServer.addUrlAndDocId(canonicalUrl, docId);
-		} catch (Exception e) {
-			logger.error("Could not add seen url: " + e.getMessage());
-		}
 	}
 
 	public PageFetcher getPageFetcher() {
@@ -409,14 +367,6 @@ public class CrawlController extends Configurable {
 
 	public void setFrontier(Frontier frontier) {
 		this.frontier = frontier;
-	}
-
-	public DocIDServer getDocIdServer() {
-		return docIdServer;
-	}
-
-	public void setDocIdServer(DocIDServer docIdServer) {
-		this.docIdServer = docIdServer;
 	}
 
 	public Object getCustomData() {
@@ -445,4 +395,7 @@ public class CrawlController extends Configurable {
 		this.shuttingDown = true;
 		frontier.finish();
 	}
+	
+	protected abstract Frontier frontierFactory();
+	
 }

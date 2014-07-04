@@ -1,17 +1,2 @@
-/home/nicolas/git/elasticrawler/crawler-core/src/test/java/edu/uci/ics/crawler4j/examples/multiple/MultipleCrawlerController.java
 /home/nicolas/git/elasticrawler/crawler-core/src/test/java/edu/uci/ics/crawler4j/tests/TLDListTest.java
-/home/nicolas/git/elasticrawler/crawler-core/src/test/java/edu/uci/ics/crawler4j/examples/localdata/LocalDataCollectorCrawler.java
-/home/nicolas/git/elasticrawler/crawler-core/src/test/java/edu/uci/ics/crawler4j/examples/localdata/LocalDataCollectorController.java
-/home/nicolas/git/elasticrawler/crawler-core/src/test/java/edu/uci/ics/crawler4j/examples/imagecrawler/Cryptography.java
-/home/nicolas/git/elasticrawler/crawler-core/src/test/java/edu/uci/ics/crawler4j/examples/shutdown/ControllerWithShutdown.java
-/home/nicolas/git/elasticrawler/crawler-core/src/test/java/edu/uci/ics/crawler4j/examples/statushandler/StatusHandlerCrawlController.java
-/home/nicolas/git/elasticrawler/crawler-core/src/test/java/edu/uci/ics/crawler4j/examples/localdata/Downloader.java
-/home/nicolas/git/elasticrawler/crawler-core/src/test/java/edu/uci/ics/crawler4j/examples/localdata/CrawlStat.java
-/home/nicolas/git/elasticrawler/crawler-core/src/test/java/edu/uci/ics/crawler4j/examples/basic/BasicCrawlController.java
-/home/nicolas/git/elasticrawler/crawler-core/src/test/java/edu/uci/ics/crawler4j/examples/imagecrawler/ImageCrawler.java
-/home/nicolas/git/elasticrawler/crawler-core/src/test/java/edu/uci/ics/crawler4j/examples/statushandler/StatusHandlerCrawler.java
-/home/nicolas/git/elasticrawler/crawler-core/src/test/java/edu/uci/ics/crawler4j/examples/shutdown/BasicCrawler.java
 /home/nicolas/git/elasticrawler/crawler-core/src/test/java/edu/uci/ics/crawler4j/tests/URLCanonicalizerTest.java
-/home/nicolas/git/elasticrawler/crawler-core/src/test/java/edu/uci/ics/crawler4j/examples/basic/BasicCrawler.java
-/home/nicolas/git/elasticrawler/crawler-core/src/test/java/edu/uci/ics/crawler4j/examples/imagecrawler/ImageCrawlController.java
-/home/nicolas/git/elasticrawler/crawler-core/src/test/java/edu/uci/ics/crawler4j/examples/multiple/BasicCrawler.java

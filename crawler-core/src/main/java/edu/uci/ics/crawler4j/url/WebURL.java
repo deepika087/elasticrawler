@@ -19,23 +19,18 @@ package edu.uci.ics.crawler4j.url;
 
 import java.io.Serializable;
 
-import com.sleepycat.persist.model.Entity;
-import com.sleepycat.persist.model.PrimaryKey;
-
 /**
  * @author Yasser Ganjisaffar <lastname at gmail dot com>
  */
 
-@Entity
 public class WebURL implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	@PrimaryKey
 	private String url;
 
-	private int docid;
-	private int parentDocid;
+	private String docid;
+	private String parentDocid;
 	private String parentUrl;
 	private short depth;
 	private String domain;
@@ -47,11 +42,11 @@ public class WebURL implements Serializable {
 	/**
 	 * Returns the unique document id assigned to this Url.
 	 */
-	public int getDocid() {
+	public String getDocid() {
 		return docid;
 	}
 
-	public void setDocid(int docid) {
+	public void setDocid(String docid) {
 		this.docid = docid;
 	}
 	
@@ -119,11 +114,11 @@ public class WebURL implements Serializable {
 	 * Returns the unique document id of the parent page. The parent page is the
 	 * page in which the Url of this page is first observed.
 	 */
-	public int getParentDocid() {
+	public String getParentDocid() {
 		return parentDocid;
 	}
 
-	public void setParentDocid(int parentDocid) {
+	public void setParentDocid(String parentDocid) {
 		this.parentDocid = parentDocid;
 	}
 

@@ -17,11 +17,6 @@
       <attribute value="jar:file:/home/nicolas/.m2/repository/commons-codec/commons-codec/1.6/commons-codec-1.6-javadoc.jar!/" name="javadoc_location"/>
     </attributes>
   </classpathentry>
-  <classpathentry kind="var" path="M2_REPO/com/sleepycat/je/4.0.92/je-4.0.92.jar" sourcepath="M2_REPO/com/sleepycat/je/4.0.92/je-4.0.92-sources.jar">
-    <attributes>
-      <attribute value="jar:file:/home/nicolas/.m2/repository/com/sleepycat/je/4.0.92/je-4.0.92-javadoc.jar!/" name="javadoc_location"/>
-    </attributes>
-  </classpathentry>
   <classpathentry kind="var" path="M2_REPO/org/apache/tika/tika-parsers/1.0/tika-parsers-1.0.jar" sourcepath="M2_REPO/org/apache/tika/tika-parsers/1.0/tika-parsers-1.0-sources.jar">
     <attributes>
       <attribute value="jar:file:/home/nicolas/.m2/repository/org/apache/tika/tika-parsers/1.0/tika-parsers-1.0-javadoc.jar!/" name="javadoc_location"/>

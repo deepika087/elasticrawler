@@ -26,12 +26,6 @@ public class CrawlConfig {
 	private String crawlStorageFolder;
 
 	/**
-	 * If this feature is enabled, you would be able to resume a previously
-	 * stopped/crashed crawl. However, it makes crawling slightly slower
-	 */
-	private boolean resumableCrawling = false;
-
-	/**
 	 * Maximum depth of crawling For unlimited depth this parameter should be
 	 * set to -1
 	 */
@@ -41,7 +35,7 @@ public class CrawlConfig {
 	 * Maximum number of pages to fetch For unlimited number of pages, this
 	 * parameter should be set to -1
 	 */
-	private int maxPagesToFetch = -1;
+	private long maxPagesToFetch = -1;
 
 	/**
 	 * user-agent string that is used for representing your crawler to web
@@ -163,18 +157,6 @@ public class CrawlConfig {
 		this.crawlStorageFolder = crawlStorageFolder;
 	}
 
-	public boolean isResumableCrawling() {
-		return resumableCrawling;
-	}
-
-	/**
-	 * If this feature is enabled, you would be able to resume a previously
-	 * stopped/crashed crawl. However, it makes crawling slightly slower
-	 */
-	public void setResumableCrawling(boolean resumableCrawling) {
-		this.resumableCrawling = resumableCrawling;
-	}
-
 	public int getMaxDepthOfCrawling() {
 		return maxDepthOfCrawling;
 	}
@@ -187,7 +169,7 @@ public class CrawlConfig {
 		this.maxDepthOfCrawling = maxDepthOfCrawling;
 	}
 
-	public int getMaxPagesToFetch() {
+	public long getMaxPagesToFetch() {
 		return maxPagesToFetch;
 	}
 
@@ -380,7 +362,6 @@ public class CrawlConfig {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("Crawl storage folder: " + getCrawlStorageFolder() + "\n");
-		sb.append("Resumable crawling: " + isResumableCrawling() + "\n");
 		sb.append("Max depth of crawl: " + getMaxDepthOfCrawling() + "\n");
 		sb.append("Max pages to fetch: " + getMaxPagesToFetch() + "\n");
 		sb.append("User agent string: " + getUserAgentString() + "\n");

@@ -15,7 +15,7 @@
 	<version>0.1.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
-	<name>Distributed Web Crawler</name>
+	<name>ElastiCrawler</name>
         <description>A distributed web crawler backed by Elasticsearch.</description>
 
         <modules>
