@@ -17,7 +17,10 @@
 
 package edu.uci.ics.crawler4j.frontier;
 
-import org.apache.log4j.Logger;
+
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.sleepycat.je.Cursor;
 import com.sleepycat.je.DatabaseEntry;
@@ -37,7 +40,7 @@ import edu.uci.ics.crawler4j.url.WebURL;
  */
 public class InProcessPagesDB extends WorkQueues {
 
-	private static final Logger logger = Logger.getLogger(InProcessPagesDB.class.getName());
+	protected static final Logger logger = LoggerFactory.getLogger(InProcessPagesDB.class);
 		
 	public InProcessPagesDB(Environment env) throws DatabaseException {
 		super(env, "InProcessPagesDB", true);
