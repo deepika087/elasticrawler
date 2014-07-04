@@ -1,0 +1,46 @@
+{
+  "crawluri": {
+    "_source": {
+      "enabled": true,
+      "compress": true
+    },
+    "_all": {
+      "enabled": false
+    },
+    "dynamic": "strict",
+    "properties": {
+      "uri": {
+        "type": "string",
+        "index": "not_analyzed",
+        "fields": {
+          "search": {
+            "type": "string",
+            "analyzer": "uax_url_email"
+          }
+        }
+      },
+      "crawl": {
+        "type": "string",
+        "index": "not_analyzed",
+        "fields": {
+          "search": {
+            "type": "string",
+            "analyzer": "standard"
+          }
+        }
+      },
+      "discoverydate": {
+        "type": "date",
+        "format": "yyyy-MM-dd HH:mm:ss:SSS"
+      },
+      "startdate": {
+        "type": "date",
+        "format": "yyyy-MM-dd HH:mm:ss:SSS"
+      },
+      "enddate": {
+        "type": "date",
+        "format": "yyyy-MM-dd HH:mm:ss:SSS"
+      } 
+    }
+  }
+}
