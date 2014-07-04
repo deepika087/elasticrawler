@@ -13,6 +13,9 @@ hs_err_pid*
 
 # Eclipse generated file
 **/target
-**/.project
+**/bin
 **/.settings
+**/.checkstyle
 **/.classpath
+**/.metadata
+**/.project
