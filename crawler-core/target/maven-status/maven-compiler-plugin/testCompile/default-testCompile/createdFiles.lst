@@ -1,0 +1,17 @@
+edu/uci/ics/crawler4j/examples/multiple/MultipleCrawlerController.class
+edu/uci/ics/crawler4j/examples/localdata/LocalDataCollectorCrawler.class
+edu/uci/ics/crawler4j/examples/imagecrawler/ImageCrawlController.class
+edu/uci/ics/crawler4j/tests/URLCanonicalizerTest.class
+edu/uci/ics/crawler4j/examples/localdata/Downloader.class
+edu/uci/ics/crawler4j/examples/basic/BasicCrawlController.class
+edu/uci/ics/crawler4j/examples/basic/BasicCrawler.class
+edu/uci/ics/crawler4j/examples/shutdown/ControllerWithShutdown.class
+edu/uci/ics/crawler4j/examples/statushandler/StatusHandlerCrawlController.class
+edu/uci/ics/crawler4j/examples/localdata/CrawlStat.class
+edu/uci/ics/crawler4j/examples/statushandler/StatusHandlerCrawler.class
+edu/uci/ics/crawler4j/examples/shutdown/BasicCrawler.class
+edu/uci/ics/crawler4j/examples/imagecrawler/Cryptography.class
+edu/uci/ics/crawler4j/examples/multiple/BasicCrawler.class
+edu/uci/ics/crawler4j/examples/imagecrawler/ImageCrawler.class
+edu/uci/ics/crawler4j/tests/TLDListTest.class
+edu/uci/ics/crawler4j/examples/localdata/LocalDataCollectorController.class
