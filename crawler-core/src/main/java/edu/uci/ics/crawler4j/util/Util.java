@@ -69,7 +69,10 @@ public class Util {
     public static boolean hasBinaryContent(String contentType) {
 		if (contentType != null) {
 			String typeStr = contentType.toLowerCase();
-			if (typeStr.contains("image") || typeStr.contains("audio") || typeStr.contains("video") || typeStr.contains("application")) {
+			if (typeStr.contains("image") 
+					|| typeStr.contains("audio") 
+					|| typeStr.contains("video") 
+					|| typeStr.contains("application")) {
 				return true;
 			}
 		}

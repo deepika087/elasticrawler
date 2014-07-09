@@ -17,7 +17,9 @@
 
 package edu.uci.ics.crawler4j.crawler;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
+import java.util.List;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -26,14 +28,18 @@ import org.apache.http.util.EntityUtils;
 
 import com.github.nicosensei.elasticrawler.crawler.CrawlUrl;
 
-import edu.uci.ics.crawler4j.parser.ParseData;
-
 /**
  * This class contains the data for a fetched and parsed page.
  *
  * @author Yasser Ganjisaffar <lastname at gmail dot com>
  */
 public class Page {
+	
+	public static enum Type {
+		html,
+		text,
+		binary
+	}
 
     /**
      * The URL of this page.
@@ -70,9 +76,16 @@ public class Page {
     protected Header[] fetchResponseHeaders;
 
     /**
-     * The parsed data populated by parsers
+     * The type of data
      */
-    protected ParseData parseData;
+    protected Type dataType;
+    
+    /**
+     * Only available for HTML type
+     */
+    protected String title;
+    
+    protected List<CrawlUrl> outgoingUrls;
 
 	public Page(CrawlUrl url) {
 		this.url = url;
@@ -124,18 +137,29 @@ public class Page {
 		fetchResponseHeaders = headers;
 	}
 
-    /**
-     * Returns the parsed data generated for this page by parsers
-     */
-	public ParseData getParseData() {
-		return parseData;
+    public Type getPayloadType() {
+		return dataType;
 	}
 
-	public void setParseData(ParseData parseData) {
-		this.parseData = parseData;
+	public void setDataType(Type dataType) {
+		this.dataType = dataType;
 	}
 
-    /**
+	public String getContentAsText() throws UnsupportedEncodingException {
+		switch (dataType) {
+			case text:
+			case html:
+				if (contentCharset == null) {
+					return new String(contentData);
+				} else {
+					return new String(contentData, contentCharset);
+				}
+			default: 
+				return null;
+		}		
+	}
+	
+	/**
      * Returns the content of this page in binary format.
      */
 	public byte[] getContentData() {
@@ -180,6 +204,22 @@ public class Page {
 
 	public void setContentCharset(String contentCharset) {
 		this.contentCharset = contentCharset;
+	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
+	}
+
+	public List<CrawlUrl> getOutgoingUrls() {
+		return outgoingUrls;
+	}
+
+	public void setOutgoingUrls(List<CrawlUrl> outgoingUrls) {
+		this.outgoingUrls = outgoingUrls;
 	}
 
 }

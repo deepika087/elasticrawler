@@ -12,11 +12,10 @@ import org.slf4j.LoggerFactory;
 
 import edu.uci.ics.crawler4j.crawler.CrawlConfig;
 import edu.uci.ics.crawler4j.crawler.Page;
+import edu.uci.ics.crawler4j.crawler.Page.Type;
 import edu.uci.ics.crawler4j.fetcher.CustomFetchStatus;
 import edu.uci.ics.crawler4j.fetcher.PageFetchResult;
 import edu.uci.ics.crawler4j.fetcher.PageFetcher;
-import edu.uci.ics.crawler4j.parser.HtmlParseData;
-import edu.uci.ics.crawler4j.parser.ParseData;
 import edu.uci.ics.crawler4j.parser.Parser;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
 
@@ -312,13 +311,11 @@ public abstract class Crawler implements Runnable {
 				return;
 			}
 
-			ParseData parseData = page.getParseData();
-			if (parseData instanceof HtmlParseData) {
-				HtmlParseData htmlParseData = (HtmlParseData) parseData;
-
-				List<CrawlUrl> outLinks = new ArrayList<>();
+			if (Type.html.equals(page.getPayloadType())) {
+				
+				List<CrawlUrl> frontierOutLinks = new ArrayList<>();
 				int maxCrawlDepth = crawlConfig.getMaxDepthOfCrawling();
-				for (CrawlUrl outLink : htmlParseData.getOutgoingUrls()) {
+				for (CrawlUrl outLink : page.getOutgoingUrls()) {
 					outLink.setParentUrl(cUrl.getUrl());
 					if (crawlHistory.alreadyVisited(outLink.getUrl()).get(0)) {
 						outLink.getMetadata().put("aborted", "already seen outlink"); //FIXME hacky
@@ -327,12 +324,12 @@ public abstract class Crawler implements Runnable {
 						outLink.setDepth((short) (cUrl.getDepth() + 1));
 						if (maxCrawlDepth == -1 || cUrl.getDepth() < maxCrawlDepth) {
 							if (shouldVisit(outLink) && robotsTxtServer.allows(outLink.getUrl())) {
-								outLinks.add(outLink);
+								frontierOutLinks.add(outLink);
 							}
 						}
 					}
 				}
-				frontier.push(outLinks);
+				frontier.push(frontierOutLinks);
 			}
 			try {
 				visit(page);

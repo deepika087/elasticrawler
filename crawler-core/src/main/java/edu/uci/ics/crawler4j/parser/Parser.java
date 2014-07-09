@@ -21,6 +21,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,6 +39,7 @@ import com.github.nicosensei.elasticrawler.crawler.UrlResolver;
 import edu.uci.ics.crawler4j.crawler.Configurable;
 import edu.uci.ics.crawler4j.crawler.CrawlConfig;
 import edu.uci.ics.crawler4j.crawler.Page;
+import edu.uci.ics.crawler4j.crawler.Page.Type;
 import edu.uci.ics.crawler4j.util.Util;
 
 /**
@@ -45,7 +47,7 @@ import edu.uci.ics.crawler4j.util.Util;
  */
 public class Parser extends Configurable {
 
-	protected static final Logger logger = LoggerFactory.getLogger(Parser.class.getName());
+	protected static final Logger LOGGER = LoggerFactory.getLogger(Parser.class.getName());
 
 	private HtmlParser htmlParser;
 	private ParseContext parseContext;
@@ -67,23 +69,11 @@ public class Parser extends Configurable {
 				return false;
 			}
 
-			page.setParseData(BinaryParseData.getInstance());
+			page.setDataType(Type.binary);
 			return true;
 
 		} else if (Util.hasPlainTextContent(page.getContentType())) {
-			try {
-				TextParseData parseData = new TextParseData();
-				if (page.getContentCharset() == null) {
-					parseData.setTextContent(new String(page.getContentData()));
-				} else {
-					parseData.setTextContent(new String(page.getContentData(), page.getContentCharset()));
-				}
-				page.setParseData(parseData);
-				return true;
-			} catch (Exception e) {
-				logger.error(e.getMessage() + ", while parsing: " + page.getCrawlUrl().getUrl());
-			}
-			return false;
+			page.setDataType(Type.text);
 		}
 
 		Metadata metadata = new Metadata();
@@ -93,14 +83,14 @@ public class Parser extends Configurable {
 			inputStream = new ByteArrayInputStream(page.getContentData());
 			htmlParser.parse(inputStream, contentHandler, metadata, parseContext);
 		} catch (Exception e) {
-			logger.error(e.getMessage() + ", while parsing: " + page.getCrawlUrl().getUrl());
+			LOGGER.error(e.getMessage() + ", while parsing: " + page.getCrawlUrl().getUrl());
 		} finally {
 			try {
 				if (inputStream != null) {
 					inputStream.close();
 				}
 			} catch (IOException e) {
-				logger.error(e.getMessage() + ", while parsing: " + page.getCrawlUrl().getUrl());
+				LOGGER.error(e.getMessage() + ", while parsing: " + page.getCrawlUrl().getUrl());
 			}
 		}
 
@@ -108,9 +98,7 @@ public class Parser extends Configurable {
 			page.setContentCharset(metadata.get("Content-Encoding"));
 		}
 
-		HtmlParseData parseData = new HtmlParseData();
-		parseData.setText(contentHandler.getBodyText().trim());
-		parseData.setTitle(metadata.get(DublinCore.TITLE));
+		page.setTitle(metadata.get(DublinCore.TITLE));
 
 		List<CrawlUrl> outgoingUrls = new ArrayList<>();
 
@@ -146,20 +134,16 @@ public class Parser extends Configurable {
 			}
 		}
 
-		parseData.setOutgoingUrls(outgoingUrls);
+		page.setOutgoingUrls(outgoingUrls);
 
-		try {
-			if (page.getContentCharset() == null) {
-				parseData.setHtml(new String(page.getContentData()));
-			} else {
-				parseData.setHtml(new String(page.getContentData(), page.getContentCharset()));
-			}
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
+		String contentCharset = page.getContentCharset();
+		if (contentCharset != null && !Charset.isSupported(contentCharset)) {
+			LOGGER.error(
+					"Unsupported encoding " + contentCharset, 
+					new UnsupportedEncodingException(contentCharset));
 			return false;
 		}
-
-		page.setParseData(parseData);
+		
 		return true;
 
 	}
