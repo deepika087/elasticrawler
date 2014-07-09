@@ -321,7 +321,7 @@ public abstract class Crawler implements Runnable {
 						outLink.getMetadata().put("aborted", "already seen outlink"); //FIXME hacky
 						crawlHistory.add(outLink);
 					} else {
-						outLink.setDepth((short) (cUrl.getDepth() + 1));
+						outLink.setDepth(cUrl.getDepth() + 1);
 						if (maxCrawlDepth == -1 || cUrl.getDepth() < maxCrawlDepth) {
 							if (shouldVisit(outLink) && robotsTxtServer.allows(outLink.getUrl())) {
 								frontierOutLinks.add(outLink);
