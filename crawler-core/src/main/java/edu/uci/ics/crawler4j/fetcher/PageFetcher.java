@@ -55,10 +55,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.nicosensei.elasticrawler.crawler.CrawlUrl;
+import com.github.nicosensei.elasticrawler.crawler.UrlCanonicalizer;
+import com.github.nicosensei.elasticrawler.crawler.UrlResolver;
 
 import edu.uci.ics.crawler4j.crawler.Configurable;
 import edu.uci.ics.crawler4j.crawler.CrawlConfig;
-import edu.uci.ics.crawler4j.url.URLCanonicalizer;
 
 /**
  * @author Yasser Ganjisaffar <lastname at gmail dot com>
@@ -76,6 +77,10 @@ public class PageFetcher extends Configurable {
 	protected long lastFetchTime = 0;
 
 	protected IdleConnectionMonitorThread connectionMonitorThread = null;
+
+	private UrlCanonicalizer urlCanonicalizer;
+
+	private UrlResolver urlResolver;
 
 	public PageFetcher(CrawlConfig config) {
 		super(config);
@@ -115,27 +120,27 @@ public class PageFetcher extends Configurable {
 
 			HttpHost proxy = new HttpHost(config.getProxyHost(), config.getProxyPort());
 			httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
-        }
+		}
 
-        httpClient.addResponseInterceptor(new HttpResponseInterceptor() {
+		httpClient.addResponseInterceptor(new HttpResponseInterceptor() {
 
-            @Override
-            public void process(final HttpResponse response, final HttpContext context) throws HttpException,
-                    IOException {
-                HttpEntity entity = response.getEntity();
-                Header contentEncoding = entity.getContentEncoding();
-                if (contentEncoding != null) {
-                    HeaderElement[] codecs = contentEncoding.getElements();
-                    for (HeaderElement codec : codecs) {
-                        if (codec.getName().equalsIgnoreCase("gzip")) {
-                            response.setEntity(new GzipDecompressingEntity(response.getEntity()));
-                            return;
-                        }
-                    }
-                }
-            }
+			@Override
+			public void process(final HttpResponse response, final HttpContext context) throws HttpException,
+			IOException {
+				HttpEntity entity = response.getEntity();
+				Header contentEncoding = entity.getContentEncoding();
+				if (contentEncoding != null) {
+					HeaderElement[] codecs = contentEncoding.getElements();
+					for (HeaderElement codec : codecs) {
+						if (codec.getName().equalsIgnoreCase("gzip")) {
+							response.setEntity(new GzipDecompressingEntity(response.getEntity()));
+							return;
+						}
+					}
+				}
+			}
 
-        });
+		});
 
 		if (connectionMonitorThread == null) {
 			connectionMonitorThread = new IdleConnectionMonitorThread(connectionManager);
@@ -143,7 +148,7 @@ public class PageFetcher extends Configurable {
 		connectionMonitorThread.start();
 
 	}
-	
+
 	public PageFetchResult fetchHeader(final CrawlUrl cUrl) {
 		PageFetchResult fetchResult = new PageFetchResult();
 		HttpGet get = null;
@@ -161,7 +166,7 @@ public class PageFetcher extends Configurable {
 			HttpResponse response = httpClient.execute(get);
 			fetchResult.setEntity(response.getEntity());
 			fetchResult.setResponseHeaders(response.getAllHeaders());
-			
+
 			int statusCode = response.getStatusLine().getStatusCode();
 			if (statusCode != HttpStatus.SC_OK) {
 				if (statusCode != HttpStatus.SC_NOT_FOUND) {
@@ -169,7 +174,8 @@ public class PageFetcher extends Configurable {
 						Header header = response.getFirstHeader("Location");
 						if (header != null) {
 							String movedToUrl = header.getValue();
-							movedToUrl = URLCanonicalizer.getCanonicalURL(movedToUrl, toFetchURL);
+							movedToUrl = urlCanonicalizer.canonicalize(
+									urlResolver.resolve(toFetchURL, movedToUrl));
 							fetchResult.setMovedToUrl(movedToUrl);
 						} 
 						fetchResult.setStatusCode(statusCode);
@@ -184,7 +190,7 @@ public class PageFetcher extends Configurable {
 			fetchResult.setFetchedUrl(toFetchURL);
 			String uri = get.getURI().toString();
 			if (!uri.equals(toFetchURL)) {
-				if (!URLCanonicalizer.getCanonicalURL(uri).equals(toFetchURL)) {
+				if (!urlCanonicalizer.canonicalize(uri).equals(toFetchURL)) {
 					fetchResult.setFetchedUrl(uri);
 				}
 			}
@@ -212,9 +218,9 @@ public class PageFetcher extends Configurable {
 				return fetchResult;
 
 			}
-			
+
 			get.abort();
-			
+
 		} catch (IOException e) {
 			logger.error("Fatal transport error: " + e.getMessage() + " while fetching " + toFetchURL
 					+ " (link found in doc #" + cUrl.getParentUrl() + ")");
@@ -248,9 +254,25 @@ public class PageFetcher extends Configurable {
 			connectionMonitorThread.shutdown();
 		}
 	}
-	
+
 	public HttpClient getHttpClient() {
 		return httpClient;
+	}
+
+	public UrlCanonicalizer getUrlCanonicalizer() {
+		return urlCanonicalizer;
+	}
+
+	public void setUrlCanonicalizer(UrlCanonicalizer urlCanonicalizer) {
+		this.urlCanonicalizer = urlCanonicalizer;
+	}
+
+	public UrlResolver getUrlResolver() {
+		return urlResolver;
+	}
+
+	public void setUrlResolver(UrlResolver urlResolver) {
+		this.urlResolver = urlResolver;
 	}
 
 	private static class GzipDecompressingEntity extends HttpEntityWrapper {

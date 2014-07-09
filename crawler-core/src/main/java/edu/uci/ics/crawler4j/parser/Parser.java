@@ -32,11 +32,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.nicosensei.elasticrawler.crawler.CrawlUrl;
+import com.github.nicosensei.elasticrawler.crawler.UrlCanonicalizer;
+import com.github.nicosensei.elasticrawler.crawler.UrlResolver;
 
 import edu.uci.ics.crawler4j.crawler.Configurable;
 import edu.uci.ics.crawler4j.crawler.CrawlConfig;
 import edu.uci.ics.crawler4j.crawler.Page;
-import edu.uci.ics.crawler4j.url.URLCanonicalizer;
 import edu.uci.ics.crawler4j.util.Util;
 
 /**
@@ -48,6 +49,10 @@ public class Parser extends Configurable {
 
 	private HtmlParser htmlParser;
 	private ParseContext parseContext;
+	
+	private UrlCanonicalizer urlCanonicalizer;
+
+	private UrlResolver urlResolver;
 
 	public Parser(CrawlConfig config) {
 		super(config);
@@ -127,7 +132,8 @@ public class Parser extends Configurable {
 			}
 			if (!hrefWithoutProtocol.contains("javascript:") && !hrefWithoutProtocol.contains("mailto:")
 					&& !hrefWithoutProtocol.contains("@")) {
-				String url = URLCanonicalizer.getCanonicalURL(href, contextURL);
+				String url = urlCanonicalizer.canonicalize(
+						urlResolver.resolve(contextURL, href));
 				if (url != null) {
 					CrawlUrl cUrl = new CrawlUrl(url, ""); //FIXME
 					cUrl.setAnchor(urlAnchorPair.getAnchor());
@@ -156,6 +162,22 @@ public class Parser extends Configurable {
 		page.setParseData(parseData);
 		return true;
 
+	}
+
+	public UrlCanonicalizer getUrlCanonicalizer() {
+		return urlCanonicalizer;
+	}
+
+	public void setUrlCanonicalizer(UrlCanonicalizer urlCanonicalizer) {
+		this.urlCanonicalizer = urlCanonicalizer;
+	}
+
+	public UrlResolver getUrlResolver() {
+		return urlResolver;
+	}
+
+	public void setUrlResolver(UrlResolver urlResolver) {
+		this.urlResolver = urlResolver;
 	}
 
 }

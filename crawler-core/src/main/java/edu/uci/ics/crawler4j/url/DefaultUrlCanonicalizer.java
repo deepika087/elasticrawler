@@ -28,22 +28,19 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import com.github.nicosensei.elasticrawler.crawler.UrlCanonicalizer;
+
 /**
  * See http://en.wikipedia.org/wiki/URL_normalization for a reference Note: some
  * parts of the code are adapted from: http://stackoverflow.com/a/4057470/405418
  * 
  * @author Yasser Ganjisaffar <lastname at gmail dot com>
  */
-public class URLCanonicalizer {
+public class DefaultUrlCanonicalizer implements UrlCanonicalizer {
 
-	public static String getCanonicalURL(String url) {
-		return getCanonicalURL(url, null);
-	}
-
-	public static String getCanonicalURL(String href, String context) {
-
+	public String canonicalize(String url) {
 		try {
-			URL canonicalURL = new URL(UrlResolver.resolveUrl(context == null ? "" : context, href));
+			URL canonicalURL = new URL(url);
 			
 			String host = canonicalURL.getHost().toLowerCase();
 			if (host == "") {

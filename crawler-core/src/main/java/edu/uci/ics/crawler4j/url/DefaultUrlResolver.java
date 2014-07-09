@@ -17,8 +17,10 @@
 
 package edu.uci.ics.crawler4j.url;
 
+import com.github.nicosensei.elasticrawler.crawler.UrlResolver;
 
-public final class UrlResolver {
+
+public final class DefaultUrlResolver implements UrlResolver {
 
     /**
      * Resolves a given relative URL against a base URL. See
@@ -29,7 +31,8 @@ public final class UrlResolver {
      * @param relativeUrl The relative URL to resolve against the base URL.
      * @return the resolved specification.
      */
-    public static String resolveUrl(final String baseUrl, final String relativeUrl) {
+	@Override
+    public String resolve(final String baseUrl, final String relativeUrl) {
         if (baseUrl == null) {
             throw new IllegalArgumentException("Base URL must not be null");
         }
