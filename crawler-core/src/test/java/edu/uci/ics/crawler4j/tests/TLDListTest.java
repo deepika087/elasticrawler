@@ -1,42 +1,36 @@
 package edu.uci.ics.crawler4j.tests;
 
-import edu.uci.ics.crawler4j.url.URLCanonicalizer;
-import edu.uci.ics.crawler4j.url.WebURL;
 import junit.framework.TestCase;
+
+import com.github.nicosensei.elasticrawler.crawler.ParsedUrl;
 
 public class TLDListTest extends TestCase {
 	
-	private WebURL webUrl = new WebURL();
-	
-	private void setUrl(String url) {
-		webUrl.setURL(URLCanonicalizer.getCanonicalURL(url));
-	}
-
 	public void testTLD() {
 		
-		setUrl("http://example.com");
-		assertEquals("example.com", webUrl.getDomain());
-		assertEquals("", webUrl.getSubDomain());
+		ParsedUrl pUrl = new ParsedUrl("http://example.com");
+		assertEquals("example.com", pUrl.getDomain());
+		assertEquals("", pUrl.getSubDomain());
 		
-		setUrl("http://test.example.com");
-		assertEquals("example.com", webUrl.getDomain());
-		assertEquals("test", webUrl.getSubDomain());
+		pUrl = new ParsedUrl("http://test.example.com");
+		assertEquals("example.com", pUrl.getDomain());
+		assertEquals("test", pUrl.getSubDomain());
 		
-		setUrl("http://test2.test.example.com");
-		assertEquals("example.com", webUrl.getDomain());
-		assertEquals("test2.test", webUrl.getSubDomain());
+		pUrl = new ParsedUrl("http://test2.test.example.com");
+		assertEquals("example.com", pUrl.getDomain());
+		assertEquals("test2.test", pUrl.getSubDomain());
 		
-		setUrl("http://test3.test2.test.example.com");
-		assertEquals("example.com", webUrl.getDomain());
-		assertEquals("test3.test2.test", webUrl.getSubDomain());
+		pUrl = new ParsedUrl("http://test3.test2.test.example.com");
+		assertEquals("example.com", pUrl.getDomain());
+		assertEquals("test3.test2.test", pUrl.getSubDomain());
 		
-		setUrl("http://www.example.ac.jp");
-		assertEquals("example.ac.jp", webUrl.getDomain());
-		assertEquals("www", webUrl.getSubDomain());
+		pUrl = new ParsedUrl("http://www.example.ac.jp");
+		assertEquals("example.ac.jp", pUrl.getDomain());
+		assertEquals("www", pUrl.getSubDomain());
 		
-		setUrl("http://example.ac.jp");
-		assertEquals("example.ac.jp", webUrl.getDomain());
-		assertEquals("", webUrl.getSubDomain());
+		pUrl = new ParsedUrl("http://example.ac.jp");
+		assertEquals("example.ac.jp", pUrl.getDomain());
+		assertEquals("", pUrl.getSubDomain());
 		
 	}
 	

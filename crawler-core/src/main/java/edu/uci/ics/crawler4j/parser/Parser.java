@@ -31,11 +31,12 @@ import org.apache.tika.parser.html.HtmlParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.nicosensei.elasticrawler.crawler.CrawlUrl;
+
 import edu.uci.ics.crawler4j.crawler.Configurable;
 import edu.uci.ics.crawler4j.crawler.CrawlConfig;
 import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.url.URLCanonicalizer;
-import edu.uci.ics.crawler4j.url.WebURL;
 import edu.uci.ics.crawler4j.util.Util;
 
 /**
@@ -75,7 +76,7 @@ public class Parser extends Configurable {
 				page.setParseData(parseData);
 				return true;
 			} catch (Exception e) {
-				logger.error(e.getMessage() + ", while parsing: " + page.getWebURL().getURL());
+				logger.error(e.getMessage() + ", while parsing: " + page.getCrawlUrl().getUrl());
 			}
 			return false;
 		}
@@ -87,14 +88,14 @@ public class Parser extends Configurable {
 			inputStream = new ByteArrayInputStream(page.getContentData());
 			htmlParser.parse(inputStream, contentHandler, metadata, parseContext);
 		} catch (Exception e) {
-			logger.error(e.getMessage() + ", while parsing: " + page.getWebURL().getURL());
+			logger.error(e.getMessage() + ", while parsing: " + page.getCrawlUrl().getUrl());
 		} finally {
 			try {
 				if (inputStream != null) {
 					inputStream.close();
 				}
 			} catch (IOException e) {
-				logger.error(e.getMessage() + ", while parsing: " + page.getWebURL().getURL());
+				logger.error(e.getMessage() + ", while parsing: " + page.getCrawlUrl().getUrl());
 			}
 		}
 
@@ -106,7 +107,7 @@ public class Parser extends Configurable {
 		parseData.setText(contentHandler.getBodyText().trim());
 		parseData.setTitle(metadata.get(DublinCore.TITLE));
 
-		List<WebURL> outgoingUrls = new ArrayList<>();
+		List<CrawlUrl> outgoingUrls = new ArrayList<>();
 
 		String baseURL = contentHandler.getBaseUrl();
 		if (baseURL != null) {
@@ -128,10 +129,9 @@ public class Parser extends Configurable {
 					&& !hrefWithoutProtocol.contains("@")) {
 				String url = URLCanonicalizer.getCanonicalURL(href, contextURL);
 				if (url != null) {
-					WebURL webURL = new WebURL();
-					webURL.setURL(url);
-					webURL.setAnchor(urlAnchorPair.getAnchor());
-					outgoingUrls.add(webURL);
+					CrawlUrl cUrl = new CrawlUrl(url, ""); //FIXME
+					cUrl.setAnchor(urlAnchorPair.getAnchor());
+					outgoingUrls.add(cUrl);
 					urlCount++;
 					if (urlCount > config.getMaxOutgoingLinksToFollow()) {
 						break;

@@ -25,10 +25,11 @@ import java.util.Map.Entry;
 
 import org.apache.http.HttpStatus;
 
+import com.github.nicosensei.elasticrawler.crawler.CrawlUrl;
+
 import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.fetcher.PageFetchResult;
 import edu.uci.ics.crawler4j.fetcher.PageFetcher;
-import edu.uci.ics.crawler4j.url.WebURL;
 import edu.uci.ics.crawler4j.util.Util;
 
 /**
@@ -50,13 +51,13 @@ public class RobotstxtServer {
 	private static String getHost(URL url) {
 		return url.getHost().toLowerCase();
 	}
-
-	public boolean allows(WebURL webURL) {
+	
+	public boolean allows(final String urlSpec) {
 		if (!config.isEnabled()) {
 			return true;
 		}
 		try {
-			URL url = new URL(webURL.getURL());
+			URL url = new URL(urlSpec);
 			String host = getHost(url);
 			String path = url.getPath();
 
@@ -80,10 +81,9 @@ public class RobotstxtServer {
 	}
 
 	private HostDirectives fetchDirectives(URL url) {
-		WebURL robotsTxtUrl = new WebURL();
 		String host = getHost(url);
 		String port = (url.getPort() == url.getDefaultPort() || url.getPort() == -1) ? "" : ":" + url.getPort();
-		robotsTxtUrl.setURL("http://" + host + port + "/robots.txt");
+		CrawlUrl robotsTxtUrl = new CrawlUrl("http://" + host + port + "/robots.txt", "robots.txt"); // FIXME
 		HostDirectives directives = null;
 		PageFetchResult fetchResult = null;
 		try {

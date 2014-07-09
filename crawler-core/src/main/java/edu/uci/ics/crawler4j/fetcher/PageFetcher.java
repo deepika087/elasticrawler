@@ -54,10 +54,11 @@ import org.apache.http.protocol.HttpContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.nicosensei.elasticrawler.crawler.CrawlUrl;
+
 import edu.uci.ics.crawler4j.crawler.Configurable;
 import edu.uci.ics.crawler4j.crawler.CrawlConfig;
 import edu.uci.ics.crawler4j.url.URLCanonicalizer;
-import edu.uci.ics.crawler4j.url.WebURL;
 
 /**
  * @author Yasser Ganjisaffar <lastname at gmail dot com>
@@ -142,11 +143,11 @@ public class PageFetcher extends Configurable {
 		connectionMonitorThread.start();
 
 	}
-
-	public PageFetchResult fetchHeader(WebURL webUrl) {
+	
+	public PageFetchResult fetchHeader(final CrawlUrl cUrl) {
 		PageFetchResult fetchResult = new PageFetchResult();
-		String toFetchURL = webUrl.getURL();
 		HttpGet get = null;
+		String toFetchURL = cUrl.getUrl();
 		try {
 			get = new HttpGet(toFetchURL);
 			synchronized (mutex) {
@@ -216,7 +217,7 @@ public class PageFetcher extends Configurable {
 			
 		} catch (IOException e) {
 			logger.error("Fatal transport error: " + e.getMessage() + " while fetching " + toFetchURL
-					+ " (link found in doc #" + webUrl.getParentDocid() + ")");
+					+ " (link found in doc #" + cUrl.getParentUrl() + ")");
 			fetchResult.setStatusCode(CustomFetchStatus.FatalTransportError);
 			return fetchResult;
 		} catch (IllegalStateException e) {
@@ -224,9 +225,9 @@ public class PageFetcher extends Configurable {
 			// and other schemes
 		} catch (Exception e) {
 			if (e.getMessage() == null) {
-				logger.error("Error while fetching " + webUrl.getURL());
+				logger.error("Error while fetching " + toFetchURL);
 			} else {
-				logger.error(e.getMessage() + " while fetching " + webUrl.getURL());
+				logger.error(e.getMessage() + " while fetching " + toFetchURL);
 			}
 		} finally {
 			try {

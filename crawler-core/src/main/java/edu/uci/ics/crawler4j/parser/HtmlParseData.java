@@ -17,9 +17,9 @@
 
 package edu.uci.ics.crawler4j.parser;
 
-import edu.uci.ics.crawler4j.url.WebURL;
-
 import java.util.List;
+
+import com.github.nicosensei.elasticrawler.crawler.CrawlUrl;
 
 public class HtmlParseData implements ParseData {
 
@@ -27,7 +27,7 @@ public class HtmlParseData implements ParseData {
 	private String text;
 	private String title;
 
-	private List<WebURL> outgoingUrls;
+	private List<CrawlUrl> outgoingUrls;
 
 	public String getHtml() {
 		return html;
@@ -53,11 +53,11 @@ public class HtmlParseData implements ParseData {
 		this.title = title;
 	}
 
-	public List<WebURL> getOutgoingUrls() {
+	public List<CrawlUrl> getOutgoingUrls() {
 		return outgoingUrls;
 	}
 
-	public void setOutgoingUrls(List<WebURL> outgoingUrls) {
+	public void setOutgoingUrls(List<CrawlUrl> outgoingUrls) {
 		this.outgoingUrls = outgoingUrls;
 	}
 	

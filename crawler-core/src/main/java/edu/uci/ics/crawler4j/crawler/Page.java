@@ -24,8 +24,9 @@ import org.apache.http.HttpEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.util.EntityUtils;
 
+import com.github.nicosensei.elasticrawler.crawler.CrawlUrl;
+
 import edu.uci.ics.crawler4j.parser.ParseData;
-import edu.uci.ics.crawler4j.url.WebURL;
 
 /**
  * This class contains the data for a fetched and parsed page.
@@ -37,7 +38,7 @@ public class Page {
     /**
      * The URL of this page.
      */
-    protected WebURL url;
+    protected CrawlUrl url;
 
     /**
      * The content of this page in binary format.
@@ -73,15 +74,15 @@ public class Page {
      */
     protected ParseData parseData;
 
-	public Page(WebURL url) {
+	public Page(CrawlUrl url) {
 		this.url = url;
 	}
 
-	public WebURL getWebURL() {
+	public CrawlUrl getCrawlUrl() {
 		return url;
 	}
 
-	public void setWebURL(WebURL url) {
+	public void setCrawlUrl(CrawlUrl url) {
 		this.url = url;
 	}
 

@@ -20,12 +20,6 @@ package edu.uci.ics.crawler4j.crawler;
 public class CrawlConfig {
 
 	/**
-	 * The folder which will be used by crawler for storing the intermediate
-	 * crawl data. The content of this folder should not be modified manually.
-	 */
-	private String crawlStorageFolder;
-
-	/**
 	 * Maximum depth of crawling For unlimited depth this parameter should be
 	 * set to -1
 	 */
@@ -130,9 +124,6 @@ public class CrawlConfig {
 	 * @throws Exception
 	 */
 	public void validate() throws Exception {
-		if (crawlStorageFolder == null) {
-			throw new Exception("Crawl storage folder is not set in the CrawlConfig.");
-		}
 		if (politenessDelay < 0) {
 			throw new Exception("Invalid value for politeness delay: " + politenessDelay);
 		}
@@ -143,18 +134,6 @@ public class CrawlConfig {
 			throw new Exception("Maximum value for crawl depth is " + Short.MAX_VALUE);
 		}
 
-	}
-
-	public String getCrawlStorageFolder() {
-		return crawlStorageFolder;
-	}
-
-	/**
-	 * The folder which will be used by crawler for storing the intermediate
-	 * crawl data. The content of this folder should not be modified manually.
-	 */
-	public void setCrawlStorageFolder(String crawlStorageFolder) {
-		this.crawlStorageFolder = crawlStorageFolder;
 	}
 
 	public int getMaxDepthOfCrawling() {
@@ -361,7 +340,6 @@ public class CrawlConfig {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("Crawl storage folder: " + getCrawlStorageFolder() + "\n");
 		sb.append("Max depth of crawl: " + getMaxDepthOfCrawling() + "\n");
 		sb.append("Max pages to fetch: " + getMaxPagesToFetch() + "\n");
 		sb.append("User agent string: " + getUserAgentString() + "\n");
