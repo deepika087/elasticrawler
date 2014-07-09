@@ -90,6 +90,7 @@ public class RobotstxtServer {
 			fetchResult = pageFetcher.fetchHeader(robotsTxtUrl);
 			if (fetchResult.getStatusCode() == HttpStatus.SC_OK) {
 				Page page = new Page(robotsTxtUrl);
+				// FIXME rbots.txt fetch should be added to crawl history
 				fetchResult.fetchContent(page);
 				if (Util.hasPlainTextContent(page.getContentType())) {
 					try {

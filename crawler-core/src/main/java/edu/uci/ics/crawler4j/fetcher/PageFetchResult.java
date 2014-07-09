@@ -73,16 +73,9 @@ public class PageFetchResult {
 		this.fetchedUrl = fetchedUrl;
 	}
 
-	public boolean fetchContent(Page page) {
-		try {
-			page.load(entity);
-			page.setFetchResponseHeaders(responseHeaders);
-			return true;
-		} catch (Exception e) {
-			logger.info("Exception while fetching content for: " + page.getCrawlUrl().getUrl() + " [" + e.getMessage()
-					+ "]");
-		}
-		return false;
+	public void fetchContent(Page page) throws Exception {
+		page.load(entity);
+		page.setFetchResponseHeaders(responseHeaders);
 	}
 
 	public void discardContentIfNotConsumed() {

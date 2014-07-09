@@ -12,19 +12,31 @@ import java.util.Map;
  */
 public class CrawlUrl {
 	
-	public static final String KEY_CRAWL_INFO = "crawlinfo";
-
 	private final String url;
 	
 	private final String crawlId;
-	
-	private final long dateDiscovered;
 	
 	private String anchor;
 	
 	private String parentUrl;
 	
 	private int depth;
+	
+	private long discoveryDate;
+	
+	private long crawlStartDate;
+	
+	private long crawlEndDate;
+	
+	private Integer httpCode;
+	
+	private String contentMimeType;
+	
+	private String contentHash;
+	
+	private long contentLength;
+	
+	private CrawlResult result;
 	
 	/**
 	 * A generic map of metadata. Will handle:
@@ -40,7 +52,7 @@ public class CrawlUrl {
 	public CrawlUrl(final String url, final String crawlId) {
 		this.url = url;
 		this.crawlId = crawlId;
-		this.dateDiscovered = System.currentTimeMillis();
+		this.discoveryDate = System.currentTimeMillis();
 	}
 
 	public CrawlUrl(final String url, final CrawlUrl copyFrom) {
@@ -75,10 +87,6 @@ public class CrawlUrl {
 		return crawlId;
 	}
 
-	public long getDateDiscovered() {
-		return dateDiscovered;
-	}
-
 	public Map<String, Object> getMetadata() {
 		return metadata;
 	}
@@ -98,9 +106,69 @@ public class CrawlUrl {
 	public void setAnchor(String anchor) {
 		this.anchor = anchor;
 	}
-	
-	public void setCrawlInfo(CrawlInfo crawlInfo) {
-		metadata.put(KEY_CRAWL_INFO, crawlInfo);
+
+	public long getDiscoveryDate() {
+		return discoveryDate;
+	}
+
+	public void setDiscoveryDate(long discoveryDate) {
+		this.discoveryDate = discoveryDate;
+	}
+
+	public long getCrawlStartDate() {
+		return crawlStartDate;
+	}
+
+	public void setCrawlStartDate(long crawlStartDate) {
+		this.crawlStartDate = crawlStartDate;
+	}
+
+	public long getCrawlEndDate() {
+		return crawlEndDate;
+	}
+
+	public void setCrawlEndDate(long crawlEndDate) {
+		this.crawlEndDate = crawlEndDate;
+	}
+
+	public Integer getHttpCode() {
+		return httpCode;
+	}
+
+	public void setHttpCode(Integer httpCode) {
+		this.httpCode = httpCode;
+	}
+
+	public String getContentMimeType() {
+		return contentMimeType;
+	}
+
+	public void setContentMimeType(String contentMimeType) {
+		this.contentMimeType = contentMimeType;
+	}
+
+	public String getContentHash() {
+		return contentHash;
+	}
+
+	public void setContentHash(String contentHash) {
+		this.contentHash = contentHash;
+	}
+
+	public long getContentLength() {
+		return contentLength;
+	}
+
+	public void setContentLength(long contentLength) {
+		this.contentLength = contentLength;
+	}
+
+	public CrawlResult getResult() {
+		return result;
+	}
+
+	public void setResult(CrawlResult result) {
+		this.result = result;
 	}
 	
 }

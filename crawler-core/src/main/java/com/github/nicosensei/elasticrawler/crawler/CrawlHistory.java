@@ -4,6 +4,7 @@
 package com.github.nicosensei.elasticrawler.crawler;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The crawl history is a store of {@link CrawlUrl} that have already been processed.
@@ -17,7 +18,7 @@ public interface CrawlHistory {
 	 * Adds processed {@link CrawlUrl} to the crawl history
 	 * @param crawlURLs
 	 */
-	void add(CrawlUrl ... crawlURLs);
+	void add(List<CrawlUrl> crawledUrls);
 	
 	/**
 	 * Finds out whether the given URLs have already been visited.

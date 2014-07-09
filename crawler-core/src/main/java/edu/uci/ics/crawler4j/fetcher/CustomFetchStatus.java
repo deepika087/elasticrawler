@@ -100,5 +100,9 @@ public class CustomFetchStatus {
 			return "(" + code + ")";
 		}
 	}
+	
+	public static boolean isCustomCode(int code) {
+		return code == FatalTransportError || code == PageTooBig || code == UnknownError;
+	}
 
 }

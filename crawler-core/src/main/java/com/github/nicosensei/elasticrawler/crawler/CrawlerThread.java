@@ -3,12 +3,13 @@
  */
 package com.github.nicosensei.elasticrawler.crawler;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.github.nicosensei.elasticrawler.crawler.CrawlResult.StatusCode;
 
 import edu.uci.ics.crawler4j.crawler.CrawlConfig;
 import edu.uci.ics.crawler4j.crawler.Page;
@@ -20,29 +21,29 @@ import edu.uci.ics.crawler4j.parser.Parser;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
 
 /**
- * A generic crawler abstract implementation.
+ * A generic crawler thread abstract implementation.
  * 
  *  Heavily based on Crawler4j's {@link WebCrawler}, but intended to run continuously.
  * 
  * @author nicolas
  *
  */
-public abstract class Crawler implements Runnable {
-	
-	protected static final Logger logger = LoggerFactory.getLogger(Crawler.class);
-	
+public abstract class CrawlerThread implements Runnable {
+
+	protected static final Logger LOGGER = LoggerFactory.getLogger(CrawlerThread.class);
+
 	private String id;
-		
+
 	private int pullSize;
-	
+
 	private CrawlConfig crawlConfig;
-	
+
 	/**
 	 * Time to wait (in milliseconds) between two pulls from the frontier if the previous
 	 * pull did not bring URLs.
 	 */
 	private long pullRetryDelay;
-	
+
 	/**
 	 * The parser that is used by this crawler instance to parse the content of
 	 * the fetched pages.
@@ -66,13 +67,13 @@ public abstract class Crawler implements Runnable {
 	 * The Frontier object that manages the crawl queues.
 	 */
 	private Frontier frontier;
-	
+
 	/**
 	 * The crawl history store.
 	 */
 	private CrawlHistory crawlHistory;
 
-	public Crawler(
+	public CrawlerThread(
 			final String id,
 			final CrawlConfig crawlConfig,
 			final int pullSize,
@@ -166,7 +167,7 @@ public abstract class Crawler implements Runnable {
 	 * finalization tasks.
 	 */
 	public abstract void onBeforeExit();
-	
+
 	public void run() {
 		onStart();
 		while (true) {
@@ -179,14 +180,17 @@ public abstract class Crawler implements Runnable {
 				}
 			} else {
 				for (CrawlUrl cUrl : localQueue) {
-					if (cUrl != null) {
-						processPage(cUrl);
+					try {
+						CrawlResult result = processPage(cUrl);
+						cUrl.setResult(result);
+					} finally {
+						crawlHistory.add(localQueue);
 					}
 				}
 			}
 		}
 	}
-	
+
 	/**
 	 * This function is called once the header of a page is fetched. It can be
 	 * overwritten by sub-classes to perform custom logic for different status
@@ -206,7 +210,7 @@ public abstract class Crawler implements Runnable {
 	 * 
 	 * @param crawlUrl
 	 */
-	protected abstract void onContentFetchError(CrawlUrl crawlUrl);
+	protected abstract void onContentFetchError(final CrawlUrl crawlUrl, final Exception e);
 
 	/**
 	 * This function is called if there has been an error in parsing the
@@ -215,7 +219,7 @@ public abstract class Crawler implements Runnable {
 	 * @param crawlUrl
 	 */
 	protected abstract void onParseError(CrawlUrl crawlUrl);
-	
+
 	/**
 	 * Classes that extends WebCrawler can overwrite this function to tell the
 	 * crawler whether the given url should be crawled or not. The following
@@ -243,113 +247,112 @@ public abstract class Crawler implements Runnable {
 		// Sub-classed can override this to add their custom functionality
 	}
 
-	private void processPage(CrawlUrl cUrl) {
-		String crawlId = cUrl.getCrawlId();
-		CrawlInfo crawlInfo = new CrawlInfo();
-		crawlInfo.setCrawlStartDate(System.currentTimeMillis());
+	private CrawlResult processPage(CrawlUrl cUrl) {
+		
+		if (!robotsTxtServer.allows(cUrl.getUrl())) {
+			return new CrawlResult(StatusCode.robotsTxtExcluded);
+		}
+				
+		if (!shouldVisit(cUrl)) {
+			return new CrawlResult(StatusCode.shouldNotVisit);
+		}
 		
 		PageFetchResult fetchResult = null;
-		try {
-			fetchResult = pageFetcher.fetchHeader(cUrl);
-			int statusCode = fetchResult.getStatusCode();
-			crawlInfo.setFetchStatus(FetchStatus.getFetchStatus(statusCode));
-			handlePageStatusCode(cUrl, statusCode, CustomFetchStatus.getStatusDescription(statusCode));
-			if (statusCode != HttpStatus.SC_OK) {
-				if (statusCode == HttpStatus.SC_MOVED_PERMANENTLY || statusCode == HttpStatus.SC_MOVED_TEMPORARILY) {
-					if (crawlConfig.isFollowRedirects()) {
-						String movedToUrl = fetchResult.getMovedToUrl();
-						if (movedToUrl == null) {
-							cUrl.getMetadata().put("aborted", "null redirection"); //FIXME hacky
-							addToHistory(cUrl, crawlInfo);
-						}						
-						
-						if (crawlHistory.alreadyVisited(movedToUrl).get(0)) {
-							// Redirect page is already seen
-							cUrl.getMetadata().put("aborted", "duplicate redirection"); //FIXME hacky
-							addToHistory(cUrl, crawlInfo);
-							return;
-						}
+		
+		cUrl.setCrawlStartDate(System.currentTimeMillis());
+		fetchResult = pageFetcher.fetchHeader(cUrl);
+		int statusCode = fetchResult.getStatusCode();
 
-						CrawlUrl redirectUrl = new CrawlUrl(movedToUrl, crawlId);
-						redirectUrl.setParentUrl(cUrl.getParentUrl());
-						redirectUrl.setDepth(cUrl.getDepth());
-						redirectUrl.setAnchor(cUrl.getAnchor());
-						if (shouldVisit(redirectUrl) && robotsTxtServer.allows(movedToUrl)) {
-							frontier.push(redirectUrl);
-						}
-					}
-				} else if (fetchResult.getStatusCode() == CustomFetchStatus.PageTooBig) {
-					logger.info("Skipping a page which was bigger than max allowed size: " + cUrl.getUrl());
-				}
-				return;
-			}
+		final String statusDesc = CustomFetchStatus.getStatusDescription(statusCode);
+		handlePageStatusCode(
+				cUrl, 
+				statusCode, 
+				statusDesc);
 
-			if (!cUrl.getUrl().equals(fetchResult.getFetchedUrl())) {
-				// Server-side redirection happened
-				if (crawlHistory.alreadyVisited(fetchResult.getFetchedUrl()).get(0)) {
-					// Redirect page is already seen
-					cUrl.getMetadata().put("aborted", "duplicate redirection"); //FIXME hacky
-					addToHistory(cUrl, crawlInfo);
-					return;
-				}
-				
-				cUrl.getMetadata().put("aborted", "server side redirection"); //FIXME hacky
-				addToHistory(cUrl, crawlInfo);
-				
-				cUrl = new CrawlUrl(fetchResult.getFetchedUrl(), cUrl);
-			}
-
-			Page page = new Page(cUrl);
-
-			if (!fetchResult.fetchContent(page)) {
-				onContentFetchError(cUrl);
-				return;
-			}
-
-			if (!parser.parse(page, cUrl.getUrl())) {
-				onParseError(cUrl);
-				return;
-			}
-
-			if (Type.html.equals(page.getPayloadType())) {
-				
-				List<CrawlUrl> frontierOutLinks = new ArrayList<>();
-				int maxCrawlDepth = crawlConfig.getMaxDepthOfCrawling();
-				for (CrawlUrl outLink : page.getOutgoingUrls()) {
-					outLink.setParentUrl(cUrl.getUrl());
-					if (crawlHistory.alreadyVisited(outLink.getUrl()).get(0)) {
-						outLink.getMetadata().put("aborted", "already seen outlink"); //FIXME hacky
-						crawlHistory.add(outLink);
-					} else {
-						outLink.setDepth(cUrl.getDepth() + 1);
-						if (maxCrawlDepth == -1 || cUrl.getDepth() < maxCrawlDepth) {
-							if (shouldVisit(outLink) && robotsTxtServer.allows(outLink.getUrl())) {
-								frontierOutLinks.add(outLink);
-							}
-						}
-					}
-				}
-				frontier.push(frontierOutLinks);
-			}
-			try {
-				visit(page);
-			} catch (Exception e) {
-				logger.error("Exception while running the visit method. Message: '" + e.getMessage() + "' at " + e.getStackTrace()[0]);
-			}
-
-		} catch (Exception e) {
-			logger.error(e.getMessage() + ", while processing: " + cUrl.getUrl());
-		} finally {
-			if (fetchResult != null) {
-				fetchResult.discardContentIfNotConsumed();
-			}
+		if (CustomFetchStatus.isCustomCode(statusCode)) {
+			return new CrawlResult(StatusCode.fetchError, statusDesc);
 		}
+
+		cUrl.setHttpCode(statusCode);
+
+		switch(statusCode) {
+		case HttpStatus.SC_OK:
+			break;
+		case HttpStatus.SC_MOVED_PERMANENTLY:
+		case HttpStatus.SC_MOVED_TEMPORARILY:
+			return processRedirection(fetchResult, cUrl, true);
+
+		}
+
+		if (!cUrl.getUrl().equals(fetchResult.getFetchedUrl())) {
+			// Server or client side redirection happened
+			return processRedirection(fetchResult, cUrl, false);
+		}
+
+		Page page = new Page(cUrl);
+
+		try {
+			fetchResult.fetchContent(page);
+		} catch (final Exception e) {
+			LOGGER.error("Error during content fetch", e);
+			onContentFetchError(cUrl, e);
+			return new CrawlResult(
+					StatusCode.fetchError, 
+					e.getClass().getCanonicalName() + " " + e.getMessage());
+		}
+
+		if (!parser.parse(page, cUrl.getUrl())) {
+			onParseError(cUrl); // FIXME more detais perhaps?
+			return new CrawlResult(StatusCode.failedToParse);
+		}
+
+		// We push outlinks only if we have not reached max depth
+		// FIXME optimization do not parse HTML if max depth reached
+		int maxCrawlDepth = crawlConfig.getMaxDepthOfCrawling();
+		if (Type.html.equals(page.getPayloadType())
+				&& (maxCrawlDepth == -1 || cUrl.getDepth() < maxCrawlDepth)) {
+			List<CrawlUrl> outLinks = page.getOutgoingUrls();
+			for (CrawlUrl outLink : outLinks) {
+				outLink.setParentUrl(cUrl.getUrl()); // FIXME should it be here?
+				outLink.setDepth(cUrl.getDepth() + 1); // FIXME should it be here?
+			}				
+			frontier.push(outLinks);
+		}
+		
+		try {
+			visit(page);
+		} catch (final Exception e) {
+			LOGGER.error("Exception visiting page method.", e);
+			return new CrawlResult(
+					StatusCode.visitError, 
+					e.getClass().getCanonicalName() + " " + e.getMessage());
+		}
+
+		return new CrawlResult(StatusCode.successful);
 	}
-	
-	private void addToHistory(CrawlUrl url, CrawlInfo crawlInfo) {
-		crawlInfo.setCrawlEndDate(System.currentTimeMillis());
-		url.setCrawlInfo(crawlInfo);
-		crawlHistory.add(url);
+
+	protected CrawlResult processRedirection(
+			final PageFetchResult fetchResult, 
+			final CrawlUrl cUrl,
+			boolean isHttpRedirection) {
+
+		StatusCode ok = (isHttpRedirection ? StatusCode.httpRedirect : StatusCode.redirect);
+		StatusCode rnf = (isHttpRedirection ? StatusCode.httpRedirectNotFollowed
+				: StatusCode.redirectNotFollowed);
+		
+		String movedToUrl = fetchResult.getMovedToUrl();
+
+		if (!crawlConfig.isFollowRedirects()) {
+			return new CrawlResult(rnf, movedToUrl);
+		}
+		
+		CrawlUrl redirectUrl = new CrawlUrl(movedToUrl, cUrl.getCrawlId());
+		redirectUrl.setParentUrl(cUrl.getParentUrl());
+		redirectUrl.setDepth(cUrl.getDepth());
+		redirectUrl.setAnchor(cUrl.getAnchor());
+
+		frontier.push(redirectUrl);
+		return new CrawlResult(ok, movedToUrl);
 	}
 
 }
